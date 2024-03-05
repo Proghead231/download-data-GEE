@@ -1,1 +1,1 @@
-Scripts for downloading data from google earth engine database 
+Scripts for downloading data from google earth engine database. Please look at the "test.ipynb" notebook for examples. 
