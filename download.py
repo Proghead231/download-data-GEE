@@ -154,6 +154,59 @@ def download_image_collection(
         logging.error(f"Error: ({datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}): {e} for asset {collection_asset_address}")
         raise e
 
+def download_vector(
+        vector_asset_address, 
+        roi=ee.FeatureCollection("projects/ee-joshisur231/assets/pa_effectiveness/nepal_boundary").geometry(), 
+        output_path=None,
+        **kwargs
+        ):
+    """
+    Downloads an image from Earth Engine given a link and a region of interest (ROI).
+
+    Parameters:
+    - image_asset_address (str): A link to the image in Earth Engine.
+    - roi (ee.FeatureCollection): A region of interest (ROI) specified as an Earth Engine FeatureCollection. Defaults to Nepal Boundary.
+    - output_path (str): The file path to save the downloaded GeoTIFF image.
+    - mosaic_collection (bool, optional): In case the there are multiple tiles in the image. Default is False.
+    - clip (bool, optional): Whether to clip the image to the specified ROI. Default is True.
+    - Optional parameters that can be passed if required (refer to geemap documentation for details): 
+        -resampling = "near", (use 'bilinear', 'bicubic' for soomothing continous data)
+        -dtype = None,
+        -overwrite = True,
+        -num_threads = None,
+        -max_tile_size = None,
+        -max_tile_dim = None,
+        -shape = None,
+        -scale_offset = False,
+        -unmask_value = None,
+        -crs = None,
+        -crs_transform = None,
+
+    Note:
+    - Required packages: geemap, geedim and earth-engine
+    """
+    try:
+        vector_asset_address = str(vector_asset_address)
+        vector_prefix = vector_asset_address.split("/")[0]
+        vector = ee.FeatureCollection(vector_asset_address)\
+            .filterBounds(roi)
+        
+        if output_path is None:
+            downloads_dir = str(Path.home() / "Downloads")
+            output_path = os.path.join(downloads_dir, f"{vector_prefix}_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.shp")
+        else:
+            output_dir = os.path.dirname(output_path)
+            if not os.path.exists(output_dir):
+                os.makedirs(output_dir)
+
+        return geemap.ee_export_vector(
+            ee_object = vector,
+            filename=output_path
+        )
+    except Exception as e:
+        logging.error(f"Error: ({datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}): {e} for asset {vector_asset_address}")
+        raise e
+
 def add_image_to_map(image_path = None, image_asset_address = None, layer_name = None, **kwargs):
     """
     Adds Earth Engine assests vector/images and local rasters to an interactive map.
